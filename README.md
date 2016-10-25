@@ -13,7 +13,7 @@ Plugin policy
 -------------
 
 > **Note:**
-> The current policy can be extended anytime.
+> The current policy can be modified anytime.
 
  - NO cracking website or service.
  - NO drugs website or service.
@@ -21,7 +21,7 @@ Plugin policy
  - NO government website or service.
  - NO illegal website or service *(in the country where its servers are located)*.
  - NO pedopornography website or service.
- - NO private website or service.
+ - NO private access website or service.
  - NO racist website or service.
  - NO warez website or service.
  - NO weapon website or service.
