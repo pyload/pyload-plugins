@@ -5,7 +5,7 @@ Here you can found all the official plugins for [**pyLoad**](https://github.com/
 *The Free and Open Source download manager written in Python and designed to be extremely lightweight,
 easily extensible and fully manageable via web*.
 
-Plugins are collected according the [**pyLoad version**](https://github.com/pyload/pyload/releases) they have to work with
+Plugins are collected according the [**pyLoad release**](https://github.com/pyload/pyload/releases) they have to work with
 and supported actively by [**The pyLoad Team**](https://github.com/orgs/pyload/people).
 
 
@@ -25,10 +25,6 @@ Plugin policy
  - NO racist website or service.
  - NO warez website or service.
  - NO weapon website or service.
-
-
-...
----
 
 
 ----------------------------------
