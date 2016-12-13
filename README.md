@@ -1,4 +1,4 @@
-<p align="center"><a href="https://pyload.net/"><img src="/media/banner.svg" alt="pyLoad" /></a></p>
+<p align="center"><a href="https://pyload.net/"><img src="/media/banner.png" alt="pyLoad" /></a></p>
 
 Here you can found all the **official plugins** for [**pyLoad**](https://github.com/pyload/pyload),
 *The Free and Open Source download manager written in Python and designed to be extremely lightweight,
