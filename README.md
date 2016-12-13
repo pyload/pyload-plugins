@@ -1,11 +1,10 @@
-pyLoad plugins
-==============
+<p align="center"><a href="https://pyload.net/"><img src="/media/banner.svg" alt="pyLoad" /></a></p>
 
-Here you can found all the official plugins for [**pyLoad**](https://github.com/pyload/pyload),
+Here you can found all the **official plugins** for [**pyLoad**](https://github.com/pyload/pyload),
 *The Free and Open Source download manager written in Python and designed to be extremely lightweight,
 easily extensible and fully manageable via web*.
 
-Plugins are collected according the [**pyLoad release**](https://github.com/pyload/pyload/releases) they have to work with
+**Plugins** are collected according the [**pyLoad release**](https://github.com/pyload/pyload/releases) they have to work with
 and supported actively by [**The pyLoad Team**](https://github.com/orgs/pyload/people).
 
 
@@ -28,4 +27,4 @@ Plugin policy
 
 
 ----------------------------------
-###### © 2008-2016 The pyLoad Team
+###### © 2009-2016 The pyLoad Team
