@@ -10,7 +10,7 @@ from module.plugins.internal.misc import decode, remove_chars, uniqify
 class MultiAccount(Account):
     __name__    = "MultiAccount"
     __type__    = "account"
-    __version__ = "0.07"
+    __version__ = "0.10"
     __status__  = "testing"
 
     __config__ = [("activated"  , "bool"               , "Activated"                    , True ),
@@ -24,7 +24,6 @@ class MultiAccount(Account):
 
 
     PERIODICAL_INTERVAL = 1  #: 1 hour
-    PERIODICAL_LOGIN    = False
 
     DOMAIN_REPLACEMENTS = [(r'180upload\.com'  , "hundredeightyupload.com"),
                            (r'bayfiles\.net'   , "bayfiles.com"           ),
@@ -57,11 +56,12 @@ class MultiAccount(Account):
     def init(self):
         self.plugins      = []
         self.supported    = []
-        self.newsupported = []
 
         self.pluginclass  = None
         self.pluginmodule = None
         self.plugintype   = None
+
+        self.pyload.hookManager.addEvent("plugin_updated", self.plugins_updated)
 
         self.init_plugin()
 
@@ -74,10 +74,21 @@ class MultiAccount(Account):
             self.pluginclass  = self.pyload.pluginManager.loadClass(self.plugintype, self.classname)
 
             interval = self.config.get('mh_interval', 12) * 60 * 60
-            self.periodical.start(interval, threaded=True)
+            self.periodical.start(interval, threaded=True, delay=2)
 
         else:
             self.log_warning(_("Multi-hoster feature will be deactivated due missing plugin reference"))
+
+
+    def plugins_updated(self, type_plugins):
+        if not self.logged:
+            if not self.relogin():
+                self.log_error(_("Could not %s hoster list - login failed, retry in 5 minutes") %
+                               ("reload" if self.info['data'].get('hosters') else "load"))
+                self.periodical.set_interval(5 * 60)
+                return
+
+        self._override()
 
 
     def replace_domains(self, list):
@@ -122,42 +133,34 @@ class MultiAccount(Account):
 
 
     def periodical_task(self):
-        if not self.info['data'].get('hosters'):
-            self.log_info(_("Loading hoster list for user `%s`...") % self.user)
-        else:
-            self.log_info(_("Reloading hoster list for user `%s`...") % self.user)
+        self.log_info(_("%s hoster list for user `%s`...") %
+                      (self.user, "Reloading" if self.info['data'].get('hosters') else "Loading"))
 
-        if self.PERIODICAL_LOGIN and not self.logged:
-            self.relogin()
+        if not self.logged:
+            if not self.relogin():
+                self.log_error(_("Could not %s hoster list - login failed, retry in 5 minutes") %
+                               ("reload" if self.info['data'].get('hosters') else "load"))
+                self.periodical.set_interval(5 * 60)
+                return
 
         hosters = self._grab_hosters()
-
         if hosters:
-            self.log_debug("Hoster list for user `%s`: %s" % (self.user, hosters))
-
-            old_supported = self.supported
-
-            self.supported    = []
-            self.newsupported = []
-            self.plugins      = []
+            self.log_debug(_("Hoster list for user `%s`: %s") % (self.user, hosters))
 
             self._override()
-
-            old_supported = [plugin for plugin in old_supported if plugin not in self.supported]
-
-            if old_supported:
-                self.log_debug("Unload: %s" % ", ".join(old_supported))
-                for plugin in old_supported:
-                    self.unload_plugin(plugin)
 
             self.periodical.set_interval(self.config.get('mh_interval', 12) * 60 * 60)
 
         else:
-            self.log_error("Failed to load hoster list for user `%s`" % self.user)
+            self.log_error(_("Failed to load hoster list for user `%s`") % self.user)
 
 
     def _override(self):
-        excluded_list = []
+        prev_supported = self.supported
+        newsupported   = []
+        excluded       = []
+        self.supported = []
+        self.plugins   = []
 
         if self.plugintype == "hoster":
             plugin_map    = dict((name.lower(), name) for name in self.pyload.pluginManager.hosterPlugins.keys())
@@ -171,39 +174,46 @@ class MultiAccount(Account):
             name = remove_chars(plugin, "-.")
 
             if name in account_list:
-                excluded_list.append(plugin)
+                excluded.append(plugin)
             else:
                 if name in plugin_map:
                     self.supported.append(plugin_map[name])
                 else:
-                    self.newsupported.append(plugin)
+                    newsupported.append(plugin)
 
-        if not self.supported and not self.newsupported:
+        removed = [plugin for plugin in prev_supported if plugin not in self.supported]
+        if removed:
+            self.log_debug(_("Unload: %s") % ", ".join(removed))
+            for plugin in removed:
+                self.unload_plugin(plugin)
+
+
+        if not self.supported and not newsupported:
             self.log_error(_("No %s loaded") % self.plugintype)
             return
 
         #: Inject plugin plugin
-        self.log_debug("Overwritten %ss: %s" % (self.plugintype, ", ".join(sorted(self.supported))))
+        self.log_debug(_("Overwritten %ss: %s") % (self.plugintype, ", ".join(sorted(self.supported))))
 
         for plugin in self.supported:
             hdict = self.pyload.pluginManager.plugins[self.plugintype][plugin]
             hdict['new_module'] = self.pluginmodule
             hdict['new_name']   = self.classname
 
-        if excluded_list:
-            self.log_info(_("%ss not overwritten: %s") % (self.plugintype.capitalize(), ", ".join(sorted(excluded_list))))
+        if excluded:
+            self.log_info(_("%ss not overwritten: %s") % (self.plugintype.capitalize(), ", ".join(sorted(excluded))))
 
-        if self.newsupported:
-            plugins = sorted(self.newsupported)
+        if newsupported:
+            plugins = sorted(newsupported)
 
-            self.log_debug("New %ss: %s" % (self.plugintype, ", ".join(plugins)))
+            self.log_debug(_("New %ss: %s") % (self.plugintype, ", ".join(plugins)))
 
             #: Create new regexp
             regexp = r'.*(?P<DOMAIN>%s).*' % "|".join(x.replace('.', '\.') for x in plugins)
             if hasattr(self.pluginclass, "__pattern__") and isinstance(self.pluginclass.__pattern__, basestring) and "://" in self.pluginclass.__pattern__:
                 regexp = r'%s|%s' % (self.pluginclass.__pattern__, regexp)
 
-            self.log_debug("Regexp: %s" % regexp)
+            self.log_debug(_("Regexp: %s") % regexp)
 
             hdict = self.pyload.pluginManager.plugins[self.plugintype][self.classname]
             hdict['pattern'] = regexp
@@ -262,10 +272,12 @@ class MultiAccount(Account):
         """
         Remove override for all plugins.
         """
-        self.log_info("Reverting back to default hosters")
+        self.log_info(_("Reverting back to default hosters"))
 
+        self.pyload.hookManager.removeEvent("plugin_updated", self.plugins_updated)
         self.periodical.stop()
 
+        self.log_debug(_("Unload: %s") % ", ".join(self.supported))
         for plugin in self.supported:
             self.unload_plugin(plugin)
 
