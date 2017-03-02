@@ -1,18 +1,21 @@
 <p align="center"><a href="https://pyload.net/"><img src="/media/banner.png" alt="pyLoad" /></a></p>
 
-Here you can found all the **official plugins** for [**pyLoad**](https://github.com/pyload/pyload),
-*The Free and Open Source download manager written in Python and designed to be extremely lightweight,
-easily extensible and fully manageable via web*.
+[![Build Status](https://travis-ci.org/pyload/plugins.svg?branch=master)]
+(https://travis-ci.org/pyload/plugins)
+[![Join the chat at https://gitter.im/pyload/plugins](https://badges.gitter.im/pyload/plugins.svg)]
+(https://gitter.im/pyload/plugins?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-**Plugins** are collected according the [**pyLoad release**](https://github.com/pyload/pyload/releases) they have to work with
-and supported actively by [**The pyLoad Team**](https://github.com/orgs/pyload/people).
+Discover the **official plugins** for
+[**pyLoad**](https://github.com/pyload/pyload),
+*The Free and Open Source download manager written in Pure Python and designed
+to be extremely lightweight, fully customizable and remotely manageable*.
 
 
 Plugin policy
 -------------
 
-> **Note:**
-> The current policy can be modified anytime.
+> **Notice:**
+> **The current policy can be modified anytime without notice.**
 
  - NO cracking website or service.
  - NO drugs website or service.
@@ -26,5 +29,5 @@ Plugin policy
  - NO weapon website or service.
 
 
-----------------------------------
-###### © 2009-2016 The pyLoad Team
+------------------------------
+###### © 2009-2017 pyLoad Team
