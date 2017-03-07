@@ -27,14 +27,15 @@ except ImportError:
 class ReCaptcha(CaptchaService):
     __name__ = 'ReCaptcha'
     __type__ = 'captcha'
-    __version__ = '0.33'
+    __version__ = '0.35'
     __status__ = 'testing'
 
     __description__ = 'ReCaptcha captcha service plugin'
     __license__ = 'GPLv3'
-    __authors__ = [('Walter Purcaro', 'vuolter@gmail.com'),
-                   ('zapp-brannigan', 'fuerst.reinje@web.de'),
-                   ('Arno-Nymous', None)]
+    __authors__ = [("Walter Purcaro", "vuolter@gmail.com"),
+                   ("zapp-brannigan", "fuerst.reinje@web.de"),
+                   ("Arno-Nymous", None),
+                   ("GammaC0de", "nitzo2001[AT]yahoo[DOT]com")]
 
     KEY_V1_PATTERN = r'(?:recaptcha(?:/api|\.net)/(?:challenge|noscript)\?k=|Recaptcha\.create\s*\(\s*["\'])([\w\-]+)'
     KEY_V2_PATTERN = r'(?:data-sitekey=["\']|["\']sitekey["\']\s*:\s*["\'])([\w\-]+)'
@@ -69,6 +70,24 @@ class ReCaptcha(CaptchaService):
             self.log_warning(_("Secure Token pattern not found"))
             return None
 
+    def detect_version(self, data=None):
+        data = data or self.retrieve_data()
+
+        v1 = re.search(self.KEY_V1_PATTERN, data) is not None
+        v2 = re.search(self.KEY_V2_PATTERN, data) is not None
+
+        if v1 is True and v2 is False:
+            self.log_debug("Detected Recaptcha v1")
+            return 1
+
+        elif v1 is False and v2 is True:
+            self.log_debug("Detected Recaptcha v2")
+            return 2
+
+        else:
+            self.log_warning(_("Could not properly detect ReCaptcha version, defaulting to v1"))
+            return 1
+
     def challenge(self, key=None, data=None, version=None, secure_token=None):
         key = key or self.retrieve_key(data)
         secure_token = secure_token or self.detect_secure_token(
@@ -80,8 +99,7 @@ class ReCaptcha(CaptchaService):
         else:
             return self.challenge(key,
                                   data,
-                                  version=2 if re.search(
-                                      self.KEY_V2_PATTERN, data or self.retrieve_data()) else 1,
+                                  version=self.detect_version(data=data),
                                   secure_token=secure_token)
 
     #: Currently secure_token is supported in ReCaptcha v2 only

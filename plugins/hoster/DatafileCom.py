@@ -10,7 +10,7 @@ from ..internal.SimpleHoster import SimpleHoster
 class DatafileCom(SimpleHoster):
     __name__ = "DatafileCom"
     __type__ = "hoster"
-    __version__ = "0.03"
+    __version__ = "0.05"
     __status__ = "testing"
 
     __pattern__ = r'https?://(?:www\.)?datafile\.com/d/(?P<ID>\w{17})'
@@ -37,11 +37,7 @@ class DatafileCom(SimpleHoster):
     def handle_free(self, pyfile):
         m = re.search(r'<span class="time">([\d:]+)<', self.data)
         if m is not None:
-            wait_time = sum(
-                int(_d) * 60 ** _i for _i,
-                _d in enumerate(
-                    reversed(
-                        m.group(1).split(':'))))
+            wait_time = sum(int(_d) * 60 ** _i for _i, _d in enumerate(reversed(m.group(1).split(':'))))
 
         else:
             wait_time = 0
