@@ -41,7 +41,7 @@ except ImportError:
 class misc(object):
     __name__ = "misc"
     __type__ = "plugin"
-    __version__ = "0.43"
+    __version__ = "0.44"
     __status__ = "stable"
 
     __pattern__ = r'^unmatchable$'
@@ -479,7 +479,13 @@ def fixurl(url, unquote=None):
     if unquote is None:
         unquote = url is old
 
-    url = html_unescape(decode(url).decode('unicode-escape'))
+    url = decode(url)
+    try:
+        url = url.decode('unicode-escape')
+    except UnicodeDecodeError:
+        pass
+
+    url = html_unescape(url)
     url = re.sub(r'(?<!:)/{2,}', '/', url).strip().lstrip('.')
 
     if not unquote:
