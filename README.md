@@ -1,11 +1,6 @@
-<p align="center"><a href="https://pyload.net/"><img src="/media/banner.png" alt="pyLoad" /></a></p>
+<p align="center"><a href="https://pyload.net"><img src="/media/banner.png" alt="pyLoad" /></a></p>
 
-[![Build Status](https://travis-ci.org/pyload/plugins.svg?branch=master)]
-(https://travis-ci.org/pyload/plugins)
-[![Coverage Status](https://coveralls.io/repos/github/pyload/plugins/badge.svg)]
-(https://coveralls.io/github/pyload/plugins)
-[![Join the chat at https://gitter.im/pyload/plugins](https://badges.gitter.im/pyload/plugins.svg)]
-(https://gitter.im/pyload/plugins?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/pyload/plugins](https://badges.gitter.im/pyload/plugins.svg)](https://gitter.im/pyload/plugins?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Discover the **official plugins** for
 [**pyLoad**](https://github.com/pyload/pyload),
