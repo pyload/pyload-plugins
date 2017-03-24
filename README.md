@@ -1,11 +1,14 @@
 <p align="center"><a href="https://pyload.net"><img src="/media/banner.png" alt="pyLoad" /></a></p>
 
-[![Join the chat at https://gitter.im/pyload/plugins](https://badges.gitter.im/pyload/plugins.svg)](https://gitter.im/pyload/plugins?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 Discover the **official plugins** for
 [**pyLoad**](https://github.com/pyload/pyload),
 *The Free and Open Source download manager written in Pure Python and designed
 to be extremely lightweight, fully customizable and remotely manageable*.
+
+_Continue reading about **pyLoad** amazing features on <https://pyload.net>_
+
+
+[![Join the chat at https://gitter.im/pyload/plugins](https://badges.gitter.im/pyload/plugins.svg)](https://gitter.im/pyload/plugins?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
 Plugin policy
