@@ -28,8 +28,7 @@ class HighWayMe(MultiHoster):
         self.chunk_limit = 4
 
     def check_errors(self):
-        # @NOTE: This is not working. It should by if 302 Moved Temporarily then... But I don't now how to implement it.
-        if self.data.get('code') == 302:
+        if "<code>5</code>" in self.data:
             self.account.relogin()
             self.retry()
 
