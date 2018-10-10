@@ -93,10 +93,10 @@ class ArchiveQueue(object):
 class ExtractArchive(Addon):
     __name__ = "ExtractArchive"
     __type__ = "hook"
-    __version__ = "1.65"
+    __version__ = "1.67"
     __status__ = "testing"
 
-    __config__ = [("activated", "bool", "Activated", True),
+    __config__ = [("activated", "bool", "Activated", False),
                   ("fullpath", "bool", "Extract with full paths", True),
                   ("overwrite", "bool", "Overwrite files", False),
                   ("keepbroken", "bool", "Try to extract broken archives", False),
@@ -107,10 +107,8 @@ class ExtractArchive(Addon):
                   ("deltotrash", "bool", "Move to trash instead delete", True),
                   ("subfolder", "bool", "Create subfolder for each package", False),
                   ("destination", "folder", "Extract files to folder", ""),
-                  ("extensions", "str", "Extract archives ending with extension",
-                   "7z,bz2,bzip2,gz,gzip,lha,lzh,lzma,rar,tar,taz,tbz,tbz2,tgz,xar,xz,z,zip"),
-                  ("excludefiles", "str", "Don't extract the following files",
-                   "*.nfo,*.DS_Store,index.dat,thumb.db"),
+                  ("extensions", "str", "Extract archives ending with extension", "7z,bz2,bzip2,gz,gzip,lha,lzh,lzma,rar,tar,taz,tbz,tbz2,tgz,xar,xz,z,zip"),
+                  ("excludefiles", "str", "Don't extract the following files", "*.nfo,*.DS_Store,index.dat,thumb.db"),
                   ("recursive", "bool", "Extract archives in archives", True),
                   ("waitall", "bool", "Run after all downloads was processed", False),
                   ("priority", "int", "Process priority", 0)]
@@ -255,10 +253,14 @@ class ExtractArchive(Addon):
 
             self.log_info(_("Check package: %s") % pypack.name)
 
-            #: Determine output folder
-            extract_folder = fsjoin(
+            pack_dl_folder = fsjoin(
                 dl_folder,
                 pypack.folder,
+                "")  #: Force trailing slash
+
+            #: Determine output folder
+            extract_folder = fsjoin(
+                pack_dl_folder,
                 destination,
                 "")  #: Force trailing slash
 
@@ -274,7 +276,7 @@ class ExtractArchive(Addon):
 
             matched = False
             success = True
-            files_ids = dict((fdata['name'], (fdata['id'], (fsjoin(dl_folder, pypack.folder, fdata['name'])), extract_folder)) for fdata
+            files_ids = dict((fdata['name'], (fdata['id'], (fsjoin(pack_dl_folder, fdata['name'])), extract_folder)) for fdata
                              in pypack.getChildren().values()).values()  #: Remove duplicates
 
             #: Check as long there are unseen files
@@ -282,7 +284,7 @@ class ExtractArchive(Addon):
                 new_files_ids = []
 
                 if extensions:  #: Include only specified archive types
-                    files_ids = filter(lambda file_id: any([Extractor.archivetype(file_id[1].lower()) in extensions
+                    files_ids = filter(lambda file_id: any([Extractor.archivetype(file_id[1]) in extensions
                                                             for Extractor in self.extractors]), files_ids)
 
                 #: Sort by filename to ensure (or at least try) that a multivolume archive is targeted by its first part
@@ -338,8 +340,12 @@ class ExtractArchive(Addon):
                                          if fname not in chunks]
                             self.log_debug("Extracted files: %s" % new_files)
 
+                            new_folders = uniqify([os.path.dirname(_f) for _f in new_files])
+                            for foldername in new_folders:
+                                self.set_permissions(fsjoin(extract_folder, foldername))
+
                             for filename in new_files:
-                                self.set_permissions(filename)
+                                self.set_permissions(fsjoin(extract_folder, filename))
 
                             for filename in new_files:
                                 file = encode(fsjoin(os.path.dirname(archive.filename), filename))
@@ -358,17 +364,17 @@ class ExtractArchive(Addon):
                 if success:
                     #: Delete empty pack folder if extract_folder resides outside download folder
                     if self.config.get('delete') and self.pyload.config.get('general', 'folder_per_package'):
-                        pack_dl_folder = fsjoin(dl_folder, pypack.folder)
-                        if len(os.listdir(pack_dl_folder)) == 0:
-                            try:
-                                os.rmdir(pack_dl_folder)
-                                self.log_debug("Successfully deleted pack folder %s" % pack_dl_folder)
+                        if not extract_folder.startswith(pack_dl_folder):
+                            if len(os.listdir(pack_dl_folder)) == 0:
+                                try:
+                                    os.rmdir(pack_dl_folder)
+                                    self.log_debug("Successfully deleted pack folder %s" % pack_dl_folder)
 
-                            except OSError:
-                                self.log_warning("Unable to delete pack folder %s" % pack_dl_folder)
+                                except OSError:
+                                    self.log_warning("Unable to delete pack folder %s" % pack_dl_folder)
 
-                        else:
-                            self.log_warning("Not deleting pack folder %s, folder not empty" % pack_dl_folder)
+                            else:
+                                self.log_warning("Not deleting pack folder %s, folder not empty" % pack_dl_folder)
 
                     extracted.append(pid)
                     self.manager.dispatchEvent("package_extracted", pypack)

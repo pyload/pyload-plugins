@@ -15,7 +15,7 @@ from ..internal.SimpleHoster import SimpleHoster
 class RapidgatorNet(SimpleHoster):
     __name__ = "RapidgatorNet"
     __type__ = "hoster"
-    __version__ = "0.49"
+    __version__ = "0.52"
     __status__ = "testing"
 
     __pattern__ = r'https?://(?:www\.)?(?:rapidgator\.net|rg\.to)/file/\w+'
@@ -53,7 +53,8 @@ class RapidgatorNet(SimpleHoster):
     ADSCAPTCHA_PATTERN = r'(http://api\.adscaptcha\.com/Get\.aspx[^"\']+)'
     SOLVEMEDIA_PATTERN = r'http://api\.solvemedia\.com/papi/challenge\.script\?k=(.*?)"'
 
-    URL_REPLACEMENTS = [(r'//(?:www\.)?rg\.to/', "//rapidgator.net/")]
+    URL_REPLACEMENTS = [(r'//(?:www\.)?rg\.to/', "//rapidgator.net/"),
+                        (r'(//rapidgator.net/file/[0-9A-z]+).*', r'\1')]
 
     API_URL = "https://rapidgator.net/api/"
 
@@ -71,6 +72,9 @@ class RapidgatorNet(SimpleHoster):
 
         if status == 200:
             return json_data['response']
+
+        elif status == 404:
+            self.offline()
 
         elif status == 423:
             self.restart(message, premium=False)
@@ -119,17 +123,17 @@ class RapidgatorNet(SimpleHoster):
         jsvars = dict(re.findall(self.JSVARS_PATTERN, self.data))
         self.log_debug(jsvars)
 
-        url = "http://rapidgator.net%s?fid=%s" % (
+        url = "https://rapidgator.net%s?fid=%s" % (
             jsvars.get('startTimerUrl', '/download/AjaxStartTimer'), jsvars['fid'])
         jsvars.update(self.get_json_response(url))
 
         self.wait(jsvars.get('secs', 180), False)
 
-        url = "http://rapidgator.net%s?sid=%s" % (
+        url = "https://rapidgator.net%s?sid=%s" % (
             jsvars.get('getDownloadUrl', '/download/AjaxGetDownloadLink'), jsvars['sid'])
         jsvars.update(self.get_json_response(url))
 
-        url = "http://rapidgator.net%s" % jsvars.get('captchaUrl', '/download/captcha')
+        url = "https://rapidgator.net%s" % jsvars.get('captchaUrl', '/download/captcha')
         self.data = self.load(url, ref=pyfile.url)
 
         m = re.search(self.LINK_FREE_PATTERN, self.data)
@@ -145,9 +149,11 @@ class RapidgatorNet(SimpleHoster):
 
             response, challenge = captcha.challenge()
 
-            self.data = self.load(url, post={'DownloadCaptchaForm[captcha]': "",
-                                             'adcopy_challenge': challenge,
-                                             'adcopy_response': response})
+            self.data = self.load(url,
+                                  post={'DownloadCaptchaForm[captcha]': "",
+                                        'adcopy_challenge': challenge,
+                                        'adcopy_response': response},
+                                  ref=url)
 
             if "The verification code is incorrect" in self.data:
                 self.retry_captcha()
